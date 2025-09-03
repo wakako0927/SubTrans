@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>解析中...</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="\static\css\common.css">
+</head>
+<body>
+  <div class="center">
+    <div class="card">
+      <div class="head"><h1 class="title">解析中</h1></div>
+      <div class="body">
+        <div class="bar"><div id="fill" class="fill"></div><div id="pct" class="pct">0%</div></div>
+        <div id="phase" class="phase"></div>
+        <div class="hint">仕様上、0%が続くことがあります。そのままお待ちください。</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const jobId = "{{ job_id }}";
+    const fill = document.getElementById('fill');
+    const pct  = document.getElementById('pct');
+    const phaseEl = document.getElementById('phase');
+    let last=0, stagnant=0;
+
+    async function poll(){
+      try{
+        const res = await fetch("/status/" + jobId, { cache: "no-store" });
+        const json = await res.json();
+        const p = Math.max(0, Math.min(1, json.progress || 0));
+        fill.style.width = (p*100).toFixed(0) + "%";
+        pct.textContent  = (p*100).toFixed(0) + "%";
+        phaseEl.textContent = json.phase ? ("現在の工程：" + json.phase) : "";
+
+        if (json.status === "done"){
+          fill.style.width = "100%"; pct.textContent="100%";
+          location.href = "/view/" + jobId; 
+        } else {
+          if (p === last) stagnant++; else stagnant = 0;
+          last = p;
+          if (stagnant >= 10){
+            try{
+              const ex = await fetch("/exists/" + jobId, { cache: "no-store" });
+              const ej = await ex.json();
+              if (ej.exists){ location.href = "/view/" + jobId; return; }
+            }catch(_){}
+            stagnant = 0;
+          }
+          setTimeout(poll, 900);
+        }
+      }catch(e){
+        setTimeout(poll, 1300);
+      }
+    }
+    poll();
+  </script>
+</body>
+</html>

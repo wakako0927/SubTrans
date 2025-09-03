@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>翻訳結果</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="\static\css\common.css">
+</head>
+<body>
+  <header style="padding:12px 16px;border-bottom:1px solid #e5e7eb;background:#fff;display:flex;gap:8px;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10">
+    <h1 style="font-size:16px;margin:0">翻訳結果</h1>
+    <div style="display:flex;gap:8px;align-items:center">
+      {% if job_id %}<a class="pill" href="/results/{{ job_id }}.json" target="_blank">JSON</a>{% endif %}
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="grid">
+      <section class="card2">
+        <header><h2 style="font-size:14px;margin:0">動画</h2></header>
+        <div class="body">
+          {% if src %}<video id="player" controls src="{{ src }}"></video>
+          {% else %}<p class="meta">動画が見つかりません</p>{% endif %}
+        </div>
+      </section>
+
+      <section class="card2">
+        <header><h2 style="font-size:14px;margin:0">スクリプト</h2></header>
+        <div class="body">
+          <div id="subs" class="subs"></div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const data = {{ data|tojson }};
+    const subsEl = document.getElementById('subs');
+    const player = document.getElementById('player');
+    let lastIdx = -1;
+
+    const lines = (data || []).map((d,i,arr)=>{
+      const n = arr[i+1];
+      return {
+        ts: typeof d.timestamp === 'number' ? d.timestamp : parseFloat(d.timestamp||0) || 0,
+        end: n ? (typeof n.timestamp === 'number' ? n.timestamp : parseFloat(n.timestamp||0) || 0) : Number.POSITIVE_INFINITY,
+        zh: d.zh || "", ja: d.ja || ""
+      };
+    });
+
+    function fmt(t){
+      if (!isFinite(t)) return "∞";
+      const s = Math.max(0, Math.floor(t));
+      const h = Math.floor(s/3600).toString().padStart(2,'0');
+      const m = Math.floor((s%3600)/60).toString().padStart(2,'0');
+      const ss = (s%60).toString().padStart(2,'0');
+      return (h!=='00' ? h+':' : '') + m + ':' + ss;
+    }
+
+    function build(){
+      subsEl.innerHTML = '';
+      if (!lines.length){
+        const p = document.createElement('p');
+        p.className = 'meta';
+        p.textContent = '結果が空です。OCRの抽出か翻訳が行われていない可能性があります。';
+        subsEl.appendChild(p);
+        return;
+      }
+      lines.forEach((ln, idx)=>{
+        const div = document.createElement('div');
+        div.className = 'line';
+        div.dataset.idx = idx;
+        div.dataset.active = "false";
+        const txt = `原文：${ln.zh}\n翻訳：${ln.ja}`;
+        div.innerHTML = `<div class="t">${txt}</div><div class="meta">${fmt(ln.ts)} 〜 ${isFinite(ln.end)?fmt(ln.end):''}</div>`;
+        div.addEventListener('click', ()=>{ if (player) { player.currentTime = ln.ts; player.play(); } });
+        subsEl.appendChild(div);
+      });
+    }
+
+    function activateByTime(t){
+      if (!lines.length) return;
+      let lo=0, hi=lines.length-1, ans=-1;
+      while (lo<=hi){
+        const mid=(lo+hi)>>1, L=lines[mid];
+        if (t < L.ts) hi=mid-1;
+        else if (t >= L.end) lo=mid+1;
+        else { ans=mid; break; }
+      }
+      const kids = subsEl.children;
+
+      if (ans !== lastIdx){
+        if (lastIdx>=0 && lastIdx<kids.length) kids[lastIdx].dataset.active = "false";
+        if (ans>=0 && ans<kids.length) kids[ans].dataset.active = "true";
+
+        if (lastIdx>=0 && lastIdx<kids.length){
+          const prev = kids[lastIdx];
+          const top = Math.max(0, prev.offsetTop - 80);
+          subsEl.scrollTo({ top, behavior: 'smooth' });
+        }
+        lastIdx = ans;
+      }
+    }
+
+    build();
+    if (player){ player.addEventListener('timeupdate', ()=> activateByTime(player.currentTime||0)); }
+  </script>
+</body>
+</html>

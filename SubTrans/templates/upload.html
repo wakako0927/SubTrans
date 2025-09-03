@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>アップロード</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="\static\css\common.css">
+</head>
+<body>
+  <div class="center">
+    <div class="card">
+      <div class="head"><h1 class="title">字幕翻訳システム</h1></div>
+      <div class="body">
+        <form action="{{ url_for('analyze') }}" method="post" enctype="multipart/form-data" id="form">
+          <div class="drop">
+            <div class="filebox">
+              <div id="filename" class="filename">動画ファイルを選択してください</div>
+              <label class="btn" for="file">ファイルを選択</label>
+              <input id="file" type="file" name="video" accept="video/*" required>
+            </div>
+          </div>
+          <div class="actions"><button class="btn" type="submit">解析を開始</button></div>
+        </form>
+        <div class="hint">翻訳が完了すると自動で結果画面へ遷移します。</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const inp = document.getElementById('file');
+    const nameEl = document.getElementById('filename');
+    inp.addEventListener('change', () => {
+      const f = inp.files && inp.files[0];
+      nameEl.textContent = f ? f.name : '動画ファイルを選択してください';
+    });
+  </script>
+</body>
+</html>
