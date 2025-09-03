@@ -11,7 +11,7 @@ def translate_chinese_to_ja(text: str) -> str:
         return ""# 空文字なら空
     try:
         messages = [
-            {"role": "system", "content": f"あなたはプロの翻訳者です。自然で流暢な日本語訳を提供してください。これは「{DRAMA_TITLE}」という中国ドラマの字幕です。翻訳した文章のみを出力し、句読点や記号は出力しないでください。"},
+            {"role": "system", "content": f"あなたはプロの翻訳者です。自然で流暢な日本語訳を提供してください。翻訳した文章のみを出力し、句読点や記号は出力しないでください。"},
             {"role": "user", "content": text}
         ]
         # ChatGPT API翻訳
@@ -25,3 +25,4 @@ def translate_chinese_to_ja(text: str) -> str:
     except Exception as e:
         print(f"[翻訳エラー]: {e}")
         return "(翻訳失敗)"
+
