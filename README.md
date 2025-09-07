@@ -81,8 +81,8 @@ MODEL_PATH     = "models/best.pt"</code></pre>
     <li>結果ページで動画と同期字幕を表示</li>
   </ol>
   <h4>出力例</h4>
-  <pre><code>原文: 如今是尸骸遍地
-翻訳: 今や死体が至る所に転がっている</code></pre>
+    <p><img src="https://raw.githubusercontent.com/wakako0927/subtrans/refs/heads/main/SubTrans/images/IMG_3738.JPEG" alt="例" width="700"></p>
+</code></pre>
 </section>
 
 <section>
