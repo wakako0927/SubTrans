@@ -28,7 +28,7 @@
 
 <section>
   <h2>ディレクトリ構成</h2>
-  <pre><code>.
+  <pre><code>SubTrans
 ├─ app.py                 # Flaskアプリ本体（非同期ジョブ/進捗API/メモリ保持）
 ├─ config.py              # 設定（フレーム間隔など）
 ├─ duplicate_filter.py    # 重複除外ロジック
